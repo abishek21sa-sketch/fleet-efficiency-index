@@ -13,6 +13,17 @@ import ChargingSection from "@/components/sections/ChargingSection";
 import PredictorSection from "@/components/sections/PredictorSection";
 import type { SafetyData } from "@/lib/api";
 
+// Forces per-request rendering instead of build-time static generation.
+// Without this, `next build` tries to fetch /api/dashboard-data at BUILD
+// time to pre-render the page - which requires the FastAPI backend to be
+// reachable during the Vercel build (fragile: couples build success to
+// Render's uptime at that exact moment) and fails outright in CI, where no
+// backend is running at all. Dynamic rendering defers the fetch to request
+// time, where the `next: { revalidate: 3600 }' on the fetch itself still
+// caches the response for an hour - same caching behavior, just resolved
+// per-request instead of at build.
+export const dynamic = "force-dynamic";
+
 function commas(n: number): string {
   return n.toLocaleString("en-US");
 }
