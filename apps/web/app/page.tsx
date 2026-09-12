@@ -3,6 +3,10 @@ import TrendSection from "@/components/sections/TrendSection";
 import ElectrificationSection from "@/components/sections/ElectrificationSection";
 import FrontierSection from "@/components/sections/FrontierSection";
 import LeaderboardSection from "@/components/sections/LeaderboardSection";
+import BakeoffSection from "@/components/sections/BakeoffSection";
+import ExplainabilitySection from "@/components/sections/ExplainabilitySection";
+import SegmentationSection from "@/components/sections/SegmentationSection";
+import ClassificationSection from "@/components/sections/ClassificationSection";
 
 function commas(n: number): string {
   return n.toLocaleString("en-US");
@@ -58,6 +62,10 @@ export default async function Home() {
       <ElectrificationSection industryTrend={data.industry_trend} forecast={data.ev_forecast} />
       <FrontierSection scatter={data.scatter} />
       <LeaderboardSection leaderboard={data.leaderboard} />
+      <BakeoffSection bakeoff={data.bakeoff} tuning={data.tuning} />
+      <ExplainabilitySection featureImportance={data.feature_importance} shapImportance={data.shap_importance} />
+      <SegmentationSection points={data.clusters.points} summary={data.clusters.summary} silhouette={data.silhouette} />
+      <ClassificationSection classifier={data.classifier} />
 
       <div className="panel">
         <div className="panel-head">
@@ -65,9 +73,9 @@ export default async function Home() {
             <div className="section-index">STATUS</div>
             <h2>Phase 2 rebuild in progress</h2>
             <p className="desc">
-              Sections 01&ndash;04 (above) are fully ported and live against the FastAPI backend. The remaining 7
-              sections (model bake-off, SHAP explainability, segmentation, classification, safety, recalls, and the
-              multi-model predictor) are being ported next, in the same order as the static site.
+              Sections 01&ndash;08 (above) are fully ported and live against the FastAPI backend. The remaining 3
+              sections (safety vs. efficiency, recall frequency, and the multi-model predictor) are being ported
+              next, in the same order as the static site.
             </p>
           </div>
         </div>
