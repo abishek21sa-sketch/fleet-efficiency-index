@@ -1,0 +1,83 @@
+{
+  "features_num": [
+    "displ",
+    "cylinders",
+    "year"
+  ],
+  "features_cat": [
+    "drive_s",
+    "vclass_s",
+    "trany_s",
+    "fuelType1"
+  ],
+  "categories": {
+    "drive_s": [
+      "2WD",
+      "4WD",
+      "AWD",
+      "FWD",
+      "RWD",
+      "Unknown"
+    ],
+    "vclass_s": [
+      "Compact/Subcompact Car",
+      "Large Car",
+      "Midsize Car",
+      "Pickup (Small)",
+      "Pickup (Standard)",
+      "SUV (Small)",
+      "SUV (Standard)",
+      "Special Purpose",
+      "Sports/Two-Seater",
+      "Van/Minivan"
+    ],
+    "trany_s": [
+      "Automatic",
+      "Manual",
+      "Unknown"
+    ],
+    "fuelType1": [
+      "Diesel",
+      "Midgrade Gasoline",
+      "Premium Gasoline",
+      "Regular Gasoline"
+    ]
+  },
+  "classifier_features_num": [
+    "displ_f",
+    "cyl_f",
+    "year"
+  ],
+  "classifier_features_cat": [
+    "vclass_s",
+    "drive_s"
+  ],
+  "classifier_categories": {
+    "vclass_s": [
+      "Compact/Subcompact Car",
+      "Large Car",
+      "Midsize Car",
+      "Pickup (Small)",
+      "Pickup (Standard)",
+      "SUV (Small)",
+      "SUV (Standard)",
+      "Special Purpose",
+      "Sports/Two-Seater",
+      "Van/Minivan"
+    ],
+    "drive_s": [
+      "2WD",
+      "4WD",
+      "AWD",
+      "FWD",
+      "RWD",
+      "Unknown"
+    ]
+  },
+  "classifier_classes": [
+    "Diesel",
+    "EV",
+    "Gasoline",
+    "Hybrid"
+  ]
+}
