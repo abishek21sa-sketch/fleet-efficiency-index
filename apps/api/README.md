@@ -49,11 +49,24 @@ classifier, and re-derives the K-means centers. Commit the resulting files in
 | `POST /api/predict/cluster` | Nearest K-means segment for a fully-specified vehicle (mpg + specs, not a hypothetical partial spec — see the schema docstring for why) |
 | `GET /api/dashboard-data` | The same pre-aggregated data the static site embeds inline, served as real endpoints instead |
 | `GET /api/safety-data` | NHTSA safety/recall data by brand |
+| `GET /api/charging-stations?state=XX` | EV charging stations for a US state, proxied from OpenChargeMap (needs `OPENCHARGEMAP_API_KEY`, see below — returns 503 with a setup message if unset) |
+
+## Enabling the charging-stations endpoint
+
+1. Get a free key (~1 minute, no cost) at https://openchargemap.org/site/loginprovider/register
+2. Set it as an environment variable: `OPENCHARGEMAP_API_KEY=your-key-here`
+3. Restart the server
+
+**Not yet verified against live data** — this was built from OpenChargeMap's documented
+response schema, but no key was available to test the actual reshaping logic
+(`_reshape()` in `app/routers/charging.py`) against a real API response. Once you have
+a key, hit `curl "http://127.0.0.1:8000/api/charging-stations?state=CA"` and confirm
+the station data looks right before trusting it in the frontend.
 
 ## Deployment (Render)
 
 - Root directory: `apps/api`
 - Build command: `pip install -r requirements.txt`
 - Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- Env var `CORS_ORIGINS`: comma-separated list including the deployed Vercel frontend URL
+- Env vars: `CORS_ORIGINS` (comma-separated list including the deployed Vercel frontend URL), `OPENCHARGEMAP_API_KEY` (optional — charging-stations endpoint returns 503 without it)
 - No database, no persistent disk needed — the model artifacts and `data/*.json` are read from the repo checkout at boot
