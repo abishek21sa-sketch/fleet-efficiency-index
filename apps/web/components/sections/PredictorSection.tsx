@@ -118,9 +118,13 @@ export default function PredictorSection({ model, bakeoff }: { model: ModelData;
       predictCluster({ comb08: bestMpg, displ: spec.displ, cylinders: spec.cylinders, co2_gpm: gPerGal / bestMpg })
         .then(setCluster)
         .catch(() => setCluster(null));
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- apiResults.random_forest intentionally excluded: it's an output of this same effect, including it would refire the cluster call on every RF response instead of once per spec change
     }, 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    // apiResults.random_forest and ridgeVal are intentionally excluded: ridgeVal is
+    // a pure function of spec (already a dep) via useMemo above, and including
+    // apiResults.random_forest - an output of this same effect - would refire the
+    // cluster call every time the RF response lands instead of once per spec change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spec]);
 
   const ridgeBake = bakeoff.find((m) => m.name === "Ridge Regression");
