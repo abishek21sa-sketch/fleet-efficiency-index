@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Big_Shoulders, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import Tooltip from "@/components/layout/Tooltip";
 import "./globals.css";
 
 const bigShoulders = Big_Shoulders({
@@ -29,7 +30,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${bigShoulders.variable} ${plexSans.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Tooltip />
+      </body>
     </html>
   );
 }

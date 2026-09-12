@@ -1,4 +1,5 @@
 import { getDashboardData } from "@/lib/api";
+import TrendSection from "@/components/sections/TrendSection";
 
 function commas(n: number): string {
   return n.toLocaleString("en-US");
@@ -50,15 +51,18 @@ export default async function Home() {
         </div>
       </div>
 
+      <TrendSection trends={data.trends} />
+
       <div className="panel">
         <div className="panel-head">
           <div>
             <div className="section-index">STATUS</div>
             <h2>Phase 2 rebuild in progress</h2>
             <p className="desc">
-              This page is a live-data checkpoint: fonts, design tokens, dark/light theming, and the FastAPI backend
-              connection are all verified working end-to-end above. The full 11-section dashboard (trend charts,
-              model bake-off, SHAP explainability, segmentation, predictor, safety, recalls) is being ported next.
+              Section 01 (above) is fully ported and live against the FastAPI backend. The remaining 10 sections
+              (electrification forecast, efficiency frontier, leaderboard, model bake-off, SHAP explainability,
+              segmentation, classification, safety, recalls, and the multi-model predictor) are being ported next,
+              in the same order as the static site.
             </p>
           </div>
         </div>
