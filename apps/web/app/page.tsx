@@ -1,4 +1,4 @@
-import { getDashboardData } from "@/lib/api";
+import { getDashboardData, getSafetyData } from "@/lib/api";
 import TrendSection from "@/components/sections/TrendSection";
 import ElectrificationSection from "@/components/sections/ElectrificationSection";
 import FrontierSection from "@/components/sections/FrontierSection";
@@ -7,6 +7,9 @@ import BakeoffSection from "@/components/sections/BakeoffSection";
 import ExplainabilitySection from "@/components/sections/ExplainabilitySection";
 import SegmentationSection from "@/components/sections/SegmentationSection";
 import ClassificationSection from "@/components/sections/ClassificationSection";
+import SafetySection from "@/components/sections/SafetySection";
+import RecallsSection from "@/components/sections/RecallsSection";
+import type { SafetyData } from "@/lib/api";
 
 function commas(n: number): string {
   return n.toLocaleString("en-US");
@@ -14,6 +17,15 @@ function commas(n: number): string {
 
 export default async function Home() {
   const data = await getDashboardData();
+  let safety: SafetyData | null = null;
+  try {
+    safety = await getSafetyData();
+  } catch {
+    // Safety data is a supplementary NHTSA cross-reference — if it's
+    // unavailable, the two sections that depend on it just don't render
+    // rather than failing the whole page (same graceful-degradation the
+    // static site's `if(!SAFETY_DATA) return;` guards did).
+  }
   const meta = data.meta;
   const latest = data.industry_trend[data.industry_trend.length - 1];
   const bestR2 = Math.max(...data.bakeoff.map((b) => b.r2_mean));
@@ -66,6 +78,8 @@ export default async function Home() {
       <ExplainabilitySection featureImportance={data.feature_importance} shapImportance={data.shap_importance} />
       <SegmentationSection points={data.clusters.points} summary={data.clusters.summary} silhouette={data.silhouette} />
       <ClassificationSection classifier={data.classifier} />
+      <SafetySection leaderboard={data.leaderboard} safety={safety} />
+      <RecallsSection safety={safety} />
 
       <div className="panel">
         <div className="panel-head">
@@ -73,15 +87,15 @@ export default async function Home() {
             <div className="section-index">STATUS</div>
             <h2>Phase 2 rebuild in progress</h2>
             <p className="desc">
-              Sections 01&ndash;08 (above) are fully ported and live against the FastAPI backend. The remaining 3
-              sections (safety vs. efficiency, recall frequency, and the multi-model predictor) are being ported
-              next, in the same order as the static site.
+              Sections 01&ndash;10 (above) are fully ported and live against the FastAPI backend. Only the
+              multi-model predictor (section 11, the payoff &mdash; live calls to all 5 regressors, the classifier,
+              and the cluster endpoint, not just the 2 client-portable models) is left.
             </p>
           </div>
         </div>
         <p className="note">
           The complete dashboard is live now as a static site: see the repo README for the link. This Next.js app
-          will replace it once the chart port is complete.
+          will replace it once the predictor is ported.
         </p>
       </div>
     </div>
