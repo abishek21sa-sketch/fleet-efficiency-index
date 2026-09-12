@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Big_Shoulders, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import Tooltip from "@/components/layout/Tooltip";
 import "./globals.css";
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     "A data-analysis and machine-learning pipeline over every EPA-tested vehicle sold in the United States since 1984, cross-referenced against NHTSA safety ratings and recall history.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${bigShoulders.variable} ${plexSans.variable} ${plexMono.variable}`}>
       <body>
