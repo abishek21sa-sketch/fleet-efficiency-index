@@ -9,6 +9,7 @@ import SegmentationSection from "@/components/sections/SegmentationSection";
 import ClassificationSection from "@/components/sections/ClassificationSection";
 import SafetySection from "@/components/sections/SafetySection";
 import RecallsSection from "@/components/sections/RecallsSection";
+import PredictorSection from "@/components/sections/PredictorSection";
 import type { SafetyData } from "@/lib/api";
 
 function commas(n: number): string {
@@ -80,24 +81,22 @@ export default async function Home() {
       <ClassificationSection classifier={data.classifier} />
       <SafetySection leaderboard={data.leaderboard} safety={safety} />
       <RecallsSection safety={safety} />
+      <PredictorSection model={data.model} bakeoff={data.bakeoff} />
 
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <div className="section-index">STATUS</div>
-            <h2>Phase 2 rebuild in progress</h2>
-            <p className="desc">
-              Sections 01&ndash;10 (above) are fully ported and live against the FastAPI backend. Only the
-              multi-model predictor (section 11, the payoff &mdash; live calls to all 5 regressors, the classifier,
-              and the cluster endpoint, not just the 2 client-portable models) is left.
-            </p>
-          </div>
-        </div>
-        <p className="note">
-          The complete dashboard is live now as a static site: see the repo README for the link. This Next.js app
-          will replace it once the predictor is ported.
-        </p>
-      </div>
+      <footer>
+        <span>
+          Sources:{" "}
+          <a href="https://www.fueleconomy.gov/feg/download.shtml" target="_blank" rel="noopener">
+            EPA / DOE fueleconomy.gov
+          </a>{" "}
+          (50K+ vehicle records, 146 makes) &middot;{" "}
+          <a href="https://www.nhtsa.gov/nhtsa-datasets-and-apis" target="_blank" rel="noopener">
+            NHTSA
+          </a>{" "}
+          safety ratings &amp; recalls &middot; 7 ML models trained, 5 running live via this app&apos;s own API.
+        </span>
+        <span className="mono">FLEET EFFICIENCY INDEX &middot; NEXT.JS + FASTAPI REBUILD</span>
+      </footer>
     </div>
   );
 }

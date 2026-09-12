@@ -196,3 +196,10 @@ export function predictPowertrain(spec: { displ: number; cylinders: number; year
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec), cache: "no-store" }
   );
 }
+
+export function predictCluster(spec: { comb08: number; displ: number; cylinders: number; co2_gpm: number }) {
+  return getJson<{ cluster_id: number; cluster_name: string }>(
+    "/api/predict/cluster",
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec), cache: "no-store" }
+  );
+}
