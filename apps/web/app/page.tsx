@@ -9,6 +9,7 @@ import SegmentationSection from "@/components/sections/SegmentationSection";
 import ClassificationSection from "@/components/sections/ClassificationSection";
 import SafetySection from "@/components/sections/SafetySection";
 import RecallsSection from "@/components/sections/RecallsSection";
+import ChargingSection from "@/components/sections/ChargingSection";
 import PredictorSection from "@/components/sections/PredictorSection";
 import type { SafetyData } from "@/lib/api";
 
@@ -81,6 +82,7 @@ export default async function Home() {
       <ClassificationSection classifier={data.classifier} />
       <SafetySection leaderboard={data.leaderboard} safety={safety} />
       <RecallsSection safety={safety} />
+      <ChargingSection />
       <PredictorSection model={data.model} bakeoff={data.bakeoff} />
 
       <footer>

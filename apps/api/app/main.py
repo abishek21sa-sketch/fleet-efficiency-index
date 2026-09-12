@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import CORS_ORIGINS
 from app.ml import registry
-from app.routers import predict, dashboard
+from app.routers import predict, dashboard, charging
 
 
 @asynccontextmanager
@@ -32,6 +32,7 @@ app.add_middleware(
 
 app.include_router(predict.router)
 app.include_router(dashboard.router)
+app.include_router(charging.router)
 
 
 @app.get("/api/models")

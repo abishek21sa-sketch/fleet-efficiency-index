@@ -134,7 +134,7 @@ export default function PredictorSection({ model, bakeoff }: { model: ModelData;
     <div className="panel">
       <div className="panel-head">
         <div>
-          <div className="section-index">11 &mdash; PREDICTOR</div>
+          <div className="section-index">12 &mdash; PREDICTOR</div>
           <h2>Combined-MPG predictor</h2>
           <p className="desc">
             Ridge and a decision tree run instantly, client-side (ported to plain JS, no network round-trip). Random Forest,
