@@ -1,0 +1,425 @@
+{
+  "brands": {
+    "Tesla": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 9,
+      "models_sampled": [
+        "Model 3 Performance AWD",
+        "Model X",
+        "Model S"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Ford": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 44,
+      "models_sampled": [
+        "Mustang",
+        "Explorer AWD",
+        "F150 Pickup 4WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Chevrolet": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 9,
+      "models_sampled": [
+        "Silverado 4WD",
+        "Silverado Mud Terrain Tires 4WD",
+        "Silverado 2WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Cadillac": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 2,
+      "total_recalls_sampled": 2,
+      "models_sampled": [
+        "CT4 V",
+        "CT5 V",
+        "XT5 AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "GMC": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 9,
+      "models_sampled": [
+        "Sierra 4WD",
+        "Sierra Mud Terrain Tires 4WD",
+        "Sierra 2WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Buick": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 1,
+      "models_sampled": [
+        "Encore GX FWD",
+        "Envision AWD",
+        "Encore GX AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Dodge": {
+      "avg_safety_rating": 4.0,
+      "safety_samples_n": 2,
+      "total_recalls_sampled": 0,
+      "models_sampled": [
+        "Durango AWD",
+        "Challenger",
+        "Durango RWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Chrysler": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 38,
+      "models_sampled": [
+        "Pacifica",
+        "Voyager",
+        "Pacifica Hybrid"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Jeep": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 19,
+      "models_sampled": [
+        "Wrangler 4dr 4WD",
+        "Wrangler 2dr 4WD",
+        "Grand Cherokee L 4WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Ram": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 45,
+      "models_sampled": [
+        "1500 4WD",
+        "1500 2WD",
+        "1500 Classic 4WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "BMW": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 0,
+      "models_sampled": [
+        "M2 Coupe",
+        "Z4 M40i",
+        "M850i xDrive Convertible"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Mercedes-Benz": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 0,
+      "models_sampled": [
+        "GLE450 4matic",
+        "CLA250",
+        "CLA250 4matic"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Audi": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 2,
+      "models_sampled": [
+        "A6 quattro",
+        "SQ5",
+        "SQ5 Sportback"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Porsche": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 2,
+      "models_sampled": [
+        "718 Boxster S",
+        "718 Cayman",
+        "911 Carrera S"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Volkswagen": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 4,
+      "models_sampled": [
+        "GLI",
+        "Jetta",
+        "GTI"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Toyota": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 2,
+      "total_recalls_sampled": 12,
+      "models_sampled": [
+        "Tundra 2WD",
+        "Tundra 4WD",
+        "GR Supra"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Honda": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 5,
+      "models_sampled": [
+        "Civic 5Dr",
+        "Civic 4Dr",
+        "CR-V AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Nissan": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 4,
+      "models_sampled": [
+        "Versa",
+        "Z",
+        "Armada 4WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Mazda": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 1,
+      "models_sampled": [
+        "CX-5 4WD",
+        "3 5-Door 4WD",
+        "MX-5"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Subaru": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 2,
+      "total_recalls_sampled": 0,
+      "models_sampled": [
+        "Crosstrek AWD",
+        "BRZ",
+        "Outback AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Lexus": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 0,
+      "models_sampled": [
+        "NX 350 AWD",
+        "LS 500h AWD",
+        "RX 350"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Acura": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 2,
+      "total_recalls_sampled": 6,
+      "models_sampled": [
+        "Integra A-Spec",
+        "Integra",
+        "MDX AWD Type-S"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Infiniti": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 1,
+      "total_recalls_sampled": 13,
+      "models_sampled": [
+        "QX80 4WD",
+        "QX80 2WD",
+        "QX60 AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Hyundai": {
+      "avg_safety_rating": 4.33,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 9,
+      "models_sampled": [
+        "Elantra",
+        "Kona AWD",
+        "Kona FWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Kia": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 8,
+      "models_sampled": [
+        "K5",
+        "Seltos AWD",
+        "Sorento FWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Genesis": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 12,
+      "models_sampled": [
+        "GV70 AWD",
+        "G80 AWD",
+        "GV80 AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Volvo": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 2,
+      "total_recalls_sampled": 7,
+      "models_sampled": [
+        "XC60 B5 AWD",
+        "V90CC B6 AWD",
+        "S60 B5 AWD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Rivian": {
+      "avg_safety_rating": null,
+      "safety_samples_n": 0,
+      "total_recalls_sampled": 24,
+      "models_sampled": [
+        "R1T Dual Max (22in)",
+        "R1T Dual Standard (22in)",
+        "R1T Dual Large (22in)"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Lucid": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 33,
+      "models_sampled": [
+        "Air G Touring XR AWD with 21 inch wheels",
+        "Air G Touring XR AWD with 20 inch wheels",
+        "Air Touring AWD with 20 inch wheels"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    },
+    "Mitsubishi": {
+      "avg_safety_rating": 5.0,
+      "safety_samples_n": 3,
+      "total_recalls_sampled": 2,
+      "models_sampled": [
+        "Outlander Sport 4WD",
+        "Eclipse Cross ES 4WD",
+        "Eclipse Cross 4WD"
+      ],
+      "years_sampled": [
+        2025,
+        2026
+      ]
+    }
+  },
+  "max_year": 2026
+}

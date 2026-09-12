@@ -1,0 +1,1144 @@
+<title>Fleet Efficiency Index</title>
+<meta name="description" content="EPA fuel-economy data across 30 US automakers, 1984-2026, with a live regression model that predicts combined MPG from vehicle specs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --page:      #eef3f4;
+    --surface:   #ffffff;
+    --surface-2: #f4f7f8;
+    --ink:       #0b1b2a;
+    --ink-2:     #445866;
+    --muted:     #8296a1;
+    --grid:      #dde5e7;
+    --border:    rgba(11,27,42,0.12);
+    --accent:    #eb6834;
+    --accent-ink:#ffffff;
+    --blue:      #2a78d6;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+    --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --other: #b7c2c8;
+    --shadow: 0 1px 2px rgba(11,27,42,0.06), 0 8px 24px -12px rgba(11,27,42,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:      #0a1522;
+      --surface:   #102437;
+      --surface-2: #0d1d2d;
+      --ink:       #eaf2f5;
+      --ink-2:     #9db4bf;
+      --muted:     #5e7885;
+      --grid:      #1c3348;
+      --border:    rgba(234,242,245,0.12);
+      --accent:    #d95926;
+      --accent-ink:#0a1522;
+      --blue:      #3987e5;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+      --other: #33495a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:      #0a1522;
+    --surface:   #102437;
+    --surface-2: #0d1d2d;
+    --ink:       #eaf2f5;
+    --ink-2:     #9db4bf;
+    --muted:     #5e7885;
+    --grid:      #1c3348;
+    --border:    rgba(234,242,245,0.12);
+    --accent:    #d95926;
+    --accent-ink:#0a1522;
+    --blue:      #3987e5;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --other: #33495a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--page); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  h1,h2,h3{ font-family:"Big Shoulders Display", system-ui, sans-serif; text-wrap:balance; margin:0; }
+  .num{ font-variant-numeric: tabular-nums; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding: 28px 24px 80px; }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    position:relative;
+    border:1px solid var(--border);
+    background:var(--surface);
+    border-radius:4px;
+    padding: 28px 28px 24px;
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .tick{ position:absolute; width:16px; height:16px; }
+  .tick::before,.tick::after{ content:""; position:absolute; background:var(--accent); }
+  .tick::before{ width:100%; height:2px; top:0; left:0; }
+  .tick::after{ width:2px; height:100%; top:0; left:0; }
+  .tick.tl{ top:10px; left:10px; }
+  .tick.tr{ top:10px; right:10px; transform:scaleX(-1); }
+  .tick.bl{ bottom:10px; left:10px; transform:scaleY(-1); }
+  .tick.br{ bottom:10px; right:10px; transform:scale(-1,-1); }
+
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace; font-size:11.5px; font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .eyebrow .dot{ width:6px;height:6px;border-radius:50%;background:var(--accent); }
+  .masthead h1{ font-size: clamp(30px, 5vw, 46px); font-weight:800; letter-spacing:-0.01em; color:var(--ink); }
+  .masthead .sub{ color:var(--ink-2); max-width:62ch; margin-top:10px; font-size:14.5px; }
+
+  .kpi-row{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:1px;
+    background:var(--border); border:1px solid var(--border); border-radius:4px;
+    margin-top:22px; overflow:hidden;
+  }
+  .kpi{ background:var(--surface); padding:14px 16px; }
+  .kpi .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; }
+  .kpi .val{ font-family:"Big Shoulders Display",sans-serif; font-weight:700; font-size:30px; margin-top:4px; color:var(--ink); }
+  .kpi .val small{ font-size:14px; font-weight:600; color:var(--ink-2); margin-left:2px; }
+
+  /* ---------- sections ---------- */
+  .panel{
+    border:1px solid var(--border); background:var(--surface); border-radius:4px;
+    padding:22px 24px 24px; margin-top:22px; box-shadow: var(--shadow);
+  }
+  .panel-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:4px; }
+  .panel h2{ font-size:22px; font-weight:700; color:var(--ink); }
+  .panel .desc{ color:var(--ink-2); font-size:13.5px; max-width:60ch; margin-top:4px; }
+  .panel .note{ color:var(--muted); font-size:12px; margin-top:10px; border-top:1px dashed var(--grid); padding-top:10px; }
+
+  .section-index{ font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); }
+
+  /* ---------- brand chips ---------- */
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px; }
+  .chip{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--border); background:var(--surface-2);
+    color:var(--ink-2); font-size:12.5px; font-weight:600;
+    padding:6px 12px 6px 10px; border-radius:100px; cursor:pointer; user-select:none;
+    transition: border-color .12s, color .12s, background .12s;
+  }
+  .chip .sw{ width:9px; height:9px; border-radius:50%; background:var(--muted); flex:none; }
+  .chip[aria-pressed="true"]{ color:var(--ink); background:var(--surface); border-color:currentColor; }
+  .chip:hover{ border-color:var(--ink-2); }
+  .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .chip.disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* ---------- charts ---------- */
+  .chart-wrap{ position:relative; margin-top:14px; }
+  svg.chart{ width:100%; height:auto; display:block; overflow:visible; }
+  .gridline{ stroke:var(--grid); stroke-width:1; shape-rendering:crispEdges; }
+  .axis-text{ fill:var(--muted); font-family:"IBM Plex Mono",monospace; font-size:10.5px; }
+  .crosshair{ stroke:var(--ink-2); stroke-width:1; pointer-events:none; opacity:0; }
+  .end-label{ font-family:"IBM Plex Sans",sans-serif; font-size:11.5px; font-weight:600; fill:var(--ink); }
+  .end-sub{ font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--muted); }
+
+  .tooltip{
+    position:absolute; pointer-events:none; z-index:5;
+    background:var(--ink); color:var(--page);
+    border-radius:4px; padding:9px 11px; font-size:12px;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,.4); opacity:0; transform:translate(-50%,-100%);
+    transition:opacity .08s; min-width:120px;
+  }
+  :root:not([data-theme="light"]) .tooltip, :root[data-theme="dark"] .tooltip{ background:#e7eef1; color:#0a1522; }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .tooltip{ background:var(--ink); color:var(--page); } }
+  .tooltip .t-year{ font-family:"IBM Plex Mono",monospace; color:var(--muted); font-size:10.5px; margin-bottom:5px; letter-spacing:.04em; }
+  .tooltip .t-row{ display:flex; align-items:center; gap:6px; margin-top:3px; white-space:nowrap; }
+  .tooltip .t-key{ width:10px; height:2px; flex:none; }
+  .tooltip .t-name{ opacity:.8; margin-right:auto; padding-right:10px; }
+  .tooltip .t-val{ font-family:"IBM Plex Mono",monospace; font-weight:600; }
+
+  .legend-note{ display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--ink-2); }
+  .legend-note span{ display:inline-flex; align-items:center; gap:6px; }
+  .legend-note i{ width:10px;height:10px;border-radius:2px; display:inline-block; }
+
+  /* ---------- table ---------- */
+  table.board{ width:100%; border-collapse:collapse; margin-top:14px; font-size:13.5px; }
+  table.board th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--muted); font-weight:600; padding:0 10px 8px; border-bottom:1px solid var(--border);
+  }
+  table.board td{ padding:9px 10px; border-bottom:1px solid var(--grid); color:var(--ink); }
+  table.board tr:last-child td{ border-bottom:none; }
+  table.board td.num, table.board th.num{ text-align:right; font-family:"IBM Plex Mono",monospace; }
+  .rank{ color:var(--muted); font-family:"IBM Plex Mono",monospace; }
+  .bar-cell{ display:flex; align-items:center; gap:10px; justify-content:flex-end; }
+  .bar-track{ width:80px; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--blue); border-radius:3px; }
+  .ev-pill{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; padding:2px 7px; border-radius:100px;
+    background: color-mix(in srgb, var(--accent) 16%, transparent); color:var(--accent); font-weight:600;
+    white-space:nowrap; display:inline-block;
+  }
+  .table-scroll{ overflow-x:auto; }
+
+  /* ---------- predictor ---------- */
+  .predictor{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap:28px; margin-top:16px; }
+  @media (max-width: 860px){ .predictor{ grid-template-columns:1fr; } }
+  .field{ margin-bottom:16px; }
+  .field label{ display:flex; justify-content:space-between; font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:6px; }
+  .field label .fv{ font-family:"IBM Plex Mono",monospace; color:var(--ink); font-weight:600; }
+  .field select, .field input[type=range]{ width:100%; }
+  select{
+    width:100%; padding:9px 10px; border-radius:4px; border:1px solid var(--border);
+    background:var(--surface-2); color:var(--ink); font-family:inherit; font-size:13.5px;
+  }
+  input[type=range]{
+    -webkit-appearance:none; appearance:none; height:4px; border-radius:2px;
+    background:var(--grid); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); border:2px solid var(--surface); box-shadow:0 0 0 1px var(--accent); cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%; background:var(--accent); border:2px solid var(--surface);
+    box-shadow:0 0 0 1px var(--accent); cursor:pointer;
+  }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
+
+  .readout{
+    border:1px solid var(--border); border-radius:4px; background:var(--surface-2);
+    padding:22px; display:flex; flex-direction:column; align-items:flex-start; gap:4px; height:fit-content;
+  }
+  .readout .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; }
+  .readout .hero{ font-family:"Big Shoulders Display",sans-serif; font-weight:800; font-size:64px; line-height:1; color:var(--accent); margin:6px 0 2px; }
+  .readout .hero small{ font-size:20px; font-weight:600; color:var(--ink-2); margin-left:4px; }
+  .readout .spec-echo{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2); line-height:1.7; margin-top:10px; }
+  .model-stats{ display:flex; gap:18px; margin-top:16px; padding-top:14px; border-top:1px dashed var(--grid); flex-wrap:wrap; }
+  .model-stats div{ font-size:11px; color:var(--muted); }
+  .model-stats b{ display:block; font-family:"IBM Plex Mono",monospace; color:var(--ink); font-size:15px; font-weight:600; }
+
+  .dual-hero{ display:flex; gap:14px; width:100%; }
+  .dual-hero .slot{ flex:1; min-width:0; border:1px solid var(--border); border-radius:4px; background:var(--surface); padding:14px 16px; }
+  .dual-hero .slot .mname{ font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .dual-hero .slot .mval{ font-family:"Big Shoulders Display",sans-serif; font-weight:800; font-size:34px; color:var(--ink); line-height:1.15; margin-top:4px; }
+  .dual-hero .slot .mval small{ font-size:14px; font-weight:600; color:var(--ink-2); }
+  .dual-hero .slot.a .mval{ color:var(--s1); }
+  .dual-hero .slot.b .mval{ color:var(--s2); }
+  .delta-note{ font-size:11.5px; color:var(--ink-2); margin-top:10px; font-family:"IBM Plex Mono",monospace; }
+
+  /* ---------- importance bars ---------- */
+  .imp-row{ display:grid; grid-template-columns:150px 1fr 48px; align-items:center; gap:12px; margin-top:10px; }
+  .imp-row .imp-label{ font-size:12.5px; color:var(--ink-2); font-weight:600; }
+  .imp-row .imp-track{ height:10px; background:var(--surface-2); border-radius:2px; overflow:hidden; }
+  .imp-row .imp-fill{ height:100%; border-radius:2px; background:var(--blue); }
+  .imp-row .imp-val{ font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink); text-align:right; }
+
+  /* ---------- per-prediction SHAP breakdown (diverging bars) ---------- */
+  .shap-panel{ margin-top:14px; padding-top:14px; border-top:1px dashed var(--grid); width:100%; }
+  .shap-title{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600; margin-bottom:10px; }
+  .shap-row{ display:grid; grid-template-columns:112px 1fr 56px; align-items:center; gap:10px; margin-top:7px; font-size:12px; }
+  .shap-row .shap-label{ color:var(--ink-2); font-weight:600; }
+  .shap-row .shap-track{ position:relative; height:10px; background:var(--surface-2); border-radius:2px; }
+  .shap-row .shap-track::before{ content:''; position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:var(--border); }
+  .shap-row .shap-bar{ position:absolute; top:0; height:100%; border-radius:2px; }
+  .shap-row .shap-bar.pos{ left:50%; background:var(--blue); }
+  .shap-row .shap-bar.neg{ right:50%; background:var(--s8); }
+  .shap-row .shap-val{ font-family:"IBM Plex Mono",monospace; text-align:right; }
+  .shap-row .shap-val.pos{ color:var(--blue); }
+  .shap-row .shap-val.neg{ color:var(--s8); }
+
+  /* ---------- confusion matrix heatmap ---------- */
+  .cm-wrap{ display:grid; grid-template-columns: auto 1fr; gap:10px; margin-top:16px; }
+  .cm-axis-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; display:flex; align-items:center; justify-content:center; }
+  .cm-top-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600; text-align:center; grid-column:2; }
+  .cm-grid{ display:grid; gap:3px; }
+  .cm-cell{ aspect-ratio:1; border-radius:3px; display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; min-height:44px; }
+  .cm-row-label{ font-size:11px; color:var(--ink-2); font-weight:600; display:flex; align-items:center; justify-content:flex-end; padding-right:4px; }
+  .cm-col-labels{ display:grid; gap:3px; margin-bottom:2px; }
+  .cm-col-labels span{ font-size:10px; color:var(--muted); text-align:center; text-transform:uppercase; letter-spacing:.04em; }
+
+  .how{ margin-top:16px; font-size:12.5px; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--border); border-radius:4px; padding:14px 16px; }
+  .how b{ color:var(--ink); }
+
+  footer{ margin-top:34px; padding-top:18px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  footer a{ color:var(--ink-2); }
+
+  ::selection{ background:var(--accent); color:var(--accent-ink); }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="tick tl"></span><span class="tick tr"></span><span class="tick bl"></span><span class="tick br"></span>
+    <div class="eyebrow"><span class="dot"></span>EPA &middot; NHTSA DATA &middot; MODEL YEARS 1984&ndash;2026 &middot; SAE / EPA TEST-CYCLE STANDARDS</div>
+    <h1>Fleet Efficiency Index</h1>
+    <p class="sub">A full-scale data-analysis &amp; machine-learning pipeline over every EPA-tested vehicle sold in the United States &mdash; Tesla to Cadillac, Audi to Ram &mdash; spanning four decades of the fleet, cross-referenced against NHTSA safety ratings and recall history. Five regression algorithms cross-validated head-to-head, SHAP-based explainability, an unsupervised market segmentation, a powertrain classifier, and two models running live, client-side, on your spec sheet.</p>
+    <div class="kpi-row" id="kpiRow"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">01 &mdash; TREND</div>
+        <h2>Brand efficiency over time</h2>
+        <p class="desc">Average EPA combined fuel economy per model year, by manufacturer. Pick up to six brands to compare.</p>
+      </div>
+    </div>
+    <div class="chips" id="brandChips"></div>
+    <div class="chart-wrap"><svg class="chart" id="trendChart" viewBox="0 0 920 380"></svg></div>
+    <p class="note">Figures for fully-electric brands (Tesla, Rivian, Lucid) are EPA <b class="mono" style="color:var(--ink-2)">MPGe</b> &mdash; an energy-equivalence scale, not directly comparable gallon-for-gallon to gasoline MPG for other brands. Shown together deliberately: the gap is the story.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">02 &mdash; ELECTRIFICATION</div>
+        <h2>Share of new EPA test entries that are electric</h2>
+        <p class="desc">Industry-wide, all 146 makes in the dataset &mdash; the fraction of each model year's tested vehicles that run on electricity alone, with a 2027&ndash;2030 logistic-curve forecast (shaded band = 10th&ndash;90th percentile across 300 bootstrap refits).</p>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg class="chart" id="evChart" viewBox="0 0 920 300"></svg></div>
+    <p class="note">Fit: a 3-parameter logistic curve (ceiling &times; growth rate &times; inflection point) on the historical series, refit 300 times against resampled residuals for the band. Early-stage S-curves are genuinely hard to project &mdash; the eventual ceiling is sensitive to exactly where the curve is right now, and a few more high-growth years could push the whole curve higher. Read the point forecast as "our model's best guess," not a confident industry prediction.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">03 &mdash; FRONTIER</div>
+        <h2>Engine size vs. combined MPG</h2>
+        <p class="desc">1,500 sampled vehicles from the last 5 model years. Larger engines trade away efficiency &mdash; except where hybrid drivetrains bend the curve.</p>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg class="chart" id="scatterChart" viewBox="0 0 920 380"></svg></div>
+    <div class="legend-note" id="scatterLegend"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">04 &mdash; LEADERBOARD</div>
+        <h2>Brand ranking, last 3 model years</h2>
+        <p class="desc">Average combined MPG / MPGe across every trim tested, most recent 3 model years.</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="board" id="boardTable">
+        <thead><tr><th>#</th><th>Make</th><th class="num">Models tested</th><th class="num">EV share</th><th class="num">Avg. combined</th></tr></thead>
+        <tbody id="boardBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">05 &mdash; BAKE-OFF</div>
+        <h2>Five algorithms, one target</h2>
+        <p class="desc">5-fold cross-validation (48,324 vehicles, mean &plusmn; std across folds &mdash; not a single lucky split), five regression algorithms predicting combined MPG. Two are simple enough to run live in your browser &mdash; the rest trade portability for accuracy.</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="board" id="bakeoffTable">
+        <thead><tr><th>Model</th><th></th><th class="num">R&sup2; (mean &plusmn; std)</th><th class="num">MAE (mean &plusmn; std)</th></tr></thead>
+        <tbody id="bakeoffBody"></tbody>
+      </table>
+    </div>
+    <p class="note">R&sup2; measures share of MPG variance explained (1.0 = perfect); mean absolute error is in MPG. 5-fold CV means each model was trained and tested 5 times on different slices of the data &mdash; the &plusmn; spread tells you how much the score would move on a different sample, which a single 80/20 split can't show. Ensemble methods (Random Forest, Gradient Boosting) win on accuracy by capturing non-linear interactions a straight line can't &mdash; the trade-off is that their decision logic can't be reduced to a formula you can run without the library.</p>
+    <div id="tuningRows"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">06 &mdash; EXPLAINABILITY</div>
+        <h2>What actually drives fuel economy</h2>
+        <p class="desc">SHAP values from the Random Forest (mean |SHAP| across a 1,500-vehicle sample, aggregated back from one-hot categories to their parent field) &mdash; a game-theoretic attribution that doesn't share impurity-based feature importance's bias toward high-cardinality fields.</p>
+      </div>
+    </div>
+    <div id="importanceRows"></div>
+    <p class="note" id="importanceCompareNote"></p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">07 &mdash; SEGMENTATION</div>
+        <h2>The market, clustered with no labels given</h2>
+        <p class="desc" id="segDesc">K-means (our own implementation &mdash; this host blocks scikit-learn's compiled clustering module) run on standardized combined MPG, displacement, cylinder count and tailpipe CO&sub2;, 1,200 vehicles from the last 5 model years. The algorithm was never told make, price, or class &mdash; these groupings emerged from the specs alone.</p>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg class="chart" id="clusterChart" viewBox="0 0 920 380"></svg></div>
+    <div class="legend-note" id="clusterLegend"></div>
+    <div class="table-scroll">
+      <table class="board" id="clusterTable">
+        <thead><tr><th>Segment</th><th class="num">Vehicles</th><th class="num">Avg. displacement</th><th class="num">Avg. combined MPG</th></tr></thead>
+        <tbody id="clusterBody"></tbody>
+      </table>
+    </div>
+    <div id="silhouetteRows" style="margin-top:16px;"></div>
+    <p class="note" id="silhouetteNote"></p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">08 &mdash; CLASSIFICATION</div>
+        <h2>Guessing the powertrain from the body</h2>
+        <p class="desc">A Random Forest classifier predicting powertrain family &mdash; gasoline, diesel, hybrid, or fully electric &mdash; from body style, drivetrain, engine displacement and model year alone. Confusion matrix on <span id="clfNTest"></span> held-out vehicles, rows normalized to the actual class.</p>
+      </div>
+    </div>
+    <div class="cm-wrap" id="cmWrap"></div>
+    <p class="note">Overall accuracy <b class="mono" id="clfAcc" style="color:var(--ink)"></b> across 4 classes (25% = chance). Diagonal cells are correct calls; off-diagonal cells show where the model confuses one powertrain family for another &mdash; gasoline and hybrid share the most overlap, which tracks: a hybrid's engine displacement often looks identical to its gasoline-only sibling.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">09 &mdash; SAFETY</div>
+        <h2>Safety vs. efficiency, by brand</h2>
+        <p class="desc">NHTSA overall 5-star safety rating against combined MPG, one point per major brand. Tests whether efficient vehicles trade away crash safety &mdash; a fair worry for older, lighter economy cars, less so for the modern fleet.</p>
+      </div>
+    </div>
+    <div class="chart-wrap"><svg class="chart" id="safetyChart" viewBox="0 0 920 380"></svg></div>
+    <p class="note" id="safetyMethodNote"></p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">10 &mdash; RECALLS</div>
+        <h2>Recall frequency by brand</h2>
+        <p class="desc">Total NHTSA recall count across each brand's most-tested recent models. Not normalized by vehicles sold &mdash; a proxy for recall activity, not a per-vehicle recall rate.</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="board" id="recallTable">
+        <thead><tr><th>#</th><th>Make</th><th class="num">Models sampled</th><th class="num">Model years</th><th class="num">Recalls (sampled)</th></tr></thead>
+        <tbody id="recallBody"></tbody>
+      </table>
+    </div>
+    <p class="note">Source: <span class="mono">api.nhtsa.gov/recalls</span> and <span class="mono">api.nhtsa.gov/SafetyRatings</span>, both free, no API key. Sampled to each brand's 3 most-tested models across its 2 most recent EPA model years (not the full 50K-row dataset) to stay light on a free government API &mdash; see the methodology note above for match-rate honesty.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="section-index">11 &mdash; PREDICTOR</div>
+        <h2>Combined-MPG predictor</h2>
+        <p class="desc">Two of the five bake-off models &mdash; ridge regression and a depth-limited decision tree &mdash; ported to plain JavaScript. Change the spec sheet, both re-predict live, plus a live per-prediction breakdown of exactly which spec fields pushed the ridge estimate up or down &mdash; entirely in your browser, no server round-trip.</p>
+      </div>
+    </div>
+    <div class="predictor">
+      <div>
+        <div class="field-grid">
+          <div class="field"><label>Vehicle class</label>
+            <select id="f_vclass"></select>
+          </div>
+          <div class="field"><label>Drivetrain</label>
+            <select id="f_drive"></select>
+          </div>
+          <div class="field"><label>Transmission</label>
+            <select id="f_trany"></select>
+          </div>
+          <div class="field"><label>Fuel grade</label>
+            <select id="f_fuel"></select>
+          </div>
+        </div>
+        <div class="field"><label>Engine displacement <span class="fv" id="v_displ">2.0 L</span></label>
+          <input type="range" id="f_displ" min="0.9" max="8.0" step="0.1" value="2.0">
+        </div>
+        <div class="field"><label>Cylinders <span class="fv" id="v_cyl">4</span></label>
+          <input type="range" id="f_cyl" min="3" max="16" step="1" value="4">
+        </div>
+        <div class="field"><label>Model year <span class="fv" id="v_year">2024</span></label>
+          <input type="range" id="f_year" min="1984" max="2026" step="1" value="2024">
+        </div>
+      </div>
+      <div class="readout">
+        <div class="lbl">Predicted combined fuel economy</div>
+        <div class="dual-hero">
+          <div class="slot a">
+            <div class="mname">Ridge regression</div>
+            <div class="mval"><span id="predValRidge">--</span><small>MPG</small></div>
+          </div>
+          <div class="slot b">
+            <div class="mname">Decision tree</div>
+            <div class="mval"><span id="predValTree">--</span><small>MPG</small></div>
+          </div>
+        </div>
+        <div class="delta-note" id="deltaNote"></div>
+        <div class="shap-panel">
+          <div class="shap-title">Why this ridge prediction &mdash; linear SHAP breakdown</div>
+          <div id="shapRows"></div>
+        </div>
+        <div class="spec-echo" id="specEcho"></div>
+        <div class="model-stats">
+          <div><b id="statR2">--</b>Ridge R&sup2;</div>
+          <div><b id="statMae">--</b>Ridge MAE</div>
+          <div><b id="statN">--</b>training rows</div>
+        </div>
+      </div>
+    </div>
+    <div class="how"><b>How it works &mdash;</b> both models were fit in scikit-learn on displacement, cylinder count, model year, and one-hot encoded drivetrain / vehicle class / transmission / fuel grade. The ridge model's coefficients and the tree's split structure were exported to JSON, and the exact same dot-product / branch traversal runs client-side here &mdash; no server, no API call, fully reproducible from the numbers in section 05.</div>
+  </div>
+
+  <footer>
+    <span>Sources: <a href="https://www.fueleconomy.gov/feg/download.shtml" target="_blank" rel="noopener">EPA / DOE fueleconomy.gov</a> (50K+ vehicle records, 146 makes) &middot; <a href="https://www.nhtsa.gov/nhtsa-datasets-and-apis" target="_blank" rel="noopener">NHTSA</a> safety ratings &amp; recalls &middot; 7 ML models trained, 2 running client-side.</span>
+    <span class="mono">FLEET EFFICIENCY INDEX &middot; UPDATED CONTINUOUSLY</span>
+  </footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = __DATA_JSON__;
+const SAFETY_DATA = __SAFETY_JSON__;
+const SLOTS = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
+function cssv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function slotColor(i){ return cssv(SLOTS[i % SLOTS.length]); }
+function fmt(n, d=1){ return (n===null||n===undefined||Number.isNaN(n)) ? '—' : Number(n).toFixed(d); }
+function commas(n){ return Number(n).toLocaleString('en-US'); }
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+/* ---------------- KPI strip ---------------- */
+(function(){
+  const meta = DATA.meta;
+  const latest = DATA.industry_trend[DATA.industry_trend.length-1];
+  const kpis = [
+    ['Vehicles analyzed', commas(meta.total_records), ''],
+    ['Model years covered', (meta.year_max-meta.year_min+1), 'yrs'],
+    ['Makes tracked', meta.n_makes, ''],
+    ['EV share, ' + latest.year, fmt(latest.ev_pct,1), '%'],
+    ['ML models trained', DATA.bakeoff.length + 2, ''],
+    ['Best model R²', Math.max(...DATA.bakeoff.map(b=>b.r2_mean!=null?b.r2_mean:b.r2)).toFixed(2), '']
+  ];
+  const row = document.getElementById('kpiRow');
+  kpis.forEach(([lbl,val,unit])=>{
+    const d = document.createElement('div'); d.className='kpi';
+    d.innerHTML = `<div class="lbl">${lbl}</div><div class="val num">${val}${unit?`<small>${unit}</small>`:''}</div>`;
+    row.appendChild(d);
+  });
+})();
+
+/* ---------------- Tooltip helper ---------------- */
+const tooltip = document.getElementById('tooltip');
+function showTip(x, y, html){
+  tooltip.innerHTML = html;
+  tooltip.style.left = x+'px'; tooltip.style.top = (y-12)+'px'; tooltip.style.opacity = 1;
+}
+function hideTip(){ tooltip.style.opacity = 0; }
+function svgPoint(svg, evt){
+  const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  const ctm = svg.getScreenCTM().inverse();
+  return pt.matrixTransform(ctm);
+}
+
+/* ================= CHART 1: Brand trend lines ================= */
+const M1 = {top:16,right:118,bottom:28,left:38}, W1=920, H1=380;
+const plotW1 = W1-M1.left-M1.right, plotH1 = H1-M1.top-M1.bottom;
+const DEFAULT_BRANDS = ['Tesla','Ford','Chevrolet','BMW','Toyota'];
+const ALL_BRANDS = Object.keys(DATA.trends).sort();
+let selectedBrands = DEFAULT_BRANDS.filter(b=>ALL_BRANDS.includes(b));
+
+const chipRow = document.getElementById('brandChips');
+const brandOrder = ['Tesla','Ford','Chevrolet','Cadillac','GMC','BMW','Mercedes-Benz','Audi','Porsche',
+  'Toyota','Honda','Lexus','Nissan','Mazda','Subaru','Hyundai','Kia','Genesis','Volkswagen','Volvo',
+  'Rivian','Lucid','Chrysler','Dodge','Jeep','Ram','Buick','Acura','Infiniti','Mitsubishi']
+  .filter(b=>ALL_BRANDS.includes(b));
+
+function renderChips(){
+  chipRow.innerHTML = '';
+  brandOrder.forEach(b=>{
+    const idx = selectedBrands.indexOf(b);
+    const chip = document.createElement('button');
+    chip.className='chip'; chip.type='button';
+    chip.setAttribute('aria-pressed', idx>=0 ? 'true':'false');
+    if(idx>=0) chip.style.color = slotColor(idx);
+    chip.innerHTML = `<span class="sw" style="background:${idx>=0?slotColor(idx):'var(--muted)'}"></span>${b}`;
+    chip.addEventListener('click', ()=>{
+      const i = selectedBrands.indexOf(b);
+      if(i>=0) selectedBrands.splice(i,1);
+      else if(selectedBrands.length<6) selectedBrands.push(b);
+      renderChips(); drawTrend();
+    });
+    chipRow.appendChild(chip);
+  });
+}
+
+const trendSvg = document.getElementById('trendChart');
+function drawTrend(){
+  trendSvg.innerHTML='';
+  if(selectedBrands.length===0) return;
+  const series = selectedBrands.map(b=>({brand:b, pts:DATA.trends[b].filter(p=>p.avg_mpg!=null)}));
+  let yMin=1e9,yMax=-1e9,xMin=1e9,xMax=-1e9;
+  series.forEach(s=>s.pts.forEach(p=>{ yMin=Math.min(yMin,p.avg_mpg); yMax=Math.max(yMax,p.avg_mpg); xMin=Math.min(xMin,p.year); xMax=Math.max(xMax,p.year); }));
+  yMin = Math.floor(Math.max(0,yMin-8)/10)*10; yMax = Math.ceil((yMax+8)/10)*10;
+  const xScale = y => M1.left + (y-xMin)/(xMax-xMin) * plotW1;
+  const yScale = v => M1.top + plotH1 - (v-yMin)/(yMax-yMin) * plotH1;
+
+  const g = el('g',{});
+  // gridlines + y ticks
+  const steps = 5;
+  for(let i=0;i<=steps;i++){
+    const v = yMin + (yMax-yMin)*i/steps;
+    const y = yScale(v);
+    g.appendChild(el('line',{class:'gridline', x1:M1.left, x2:W1-M1.right, y1:y, y2:y}));
+    const t = el('text',{class:'axis-text', x:M1.left-8, y:y+3, 'text-anchor':'end'}); t.textContent = Math.round(v); g.appendChild(t);
+  }
+  // x ticks every 5 yrs
+  for(let yr=Math.ceil(xMin/5)*5; yr<=xMax; yr+=5){
+    const x = xScale(yr);
+    const t = el('text',{class:'axis-text', x:x, y:H1-M1.bottom+18, 'text-anchor':'middle'}); t.textContent = yr; g.appendChild(t);
+  }
+  trendSvg.appendChild(g);
+
+  const crosshair = el('line',{class:'crosshair', x1:0,x2:0,y1:M1.top,y2:H1-M1.bottom});
+  trendSvg.appendChild(crosshair);
+
+  const labelInfo = [];
+  series.forEach((s,i)=>{
+    const color = slotColor(i);
+    const d = s.pts.map((p,j)=> (j===0?'M':'L') + xScale(p.year) + ' ' + yScale(p.avg_mpg)).join(' ');
+    trendSvg.appendChild(el('path',{d, fill:'none', stroke:color, 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+    const last = s.pts[s.pts.length-1];
+    const lx = xScale(last.year), ly = yScale(last.avg_mpg);
+    trendSvg.appendChild(el('circle',{cx:lx, cy:ly, r:4, fill:color, stroke:cssv('--surface'), 'stroke-width':2}));
+    labelInfo.push({brand:s.brand, color, lx, ly, center:ly, isEv:last.ev_pct===100, val:last.avg_mpg});
+  });
+  // collision avoidance: greedy top-down min-gap pass, then clamp within plot bounds
+  labelInfo.sort((a,b)=>a.center-b.center);
+  const minGap = 25, minY = M1.top+10, maxY = H1-M1.bottom-10;
+  for(let i=1;i<labelInfo.length;i++){
+    if(labelInfo[i].center - labelInfo[i-1].center < minGap) labelInfo[i].center = labelInfo[i-1].center + minGap;
+  }
+  const overflow = labelInfo.length ? labelInfo[labelInfo.length-1].center - maxY : 0;
+  if(overflow > 0) labelInfo.forEach(l=> l.center -= overflow);
+  if(labelInfo.length && labelInfo[0].center < minY) labelInfo.forEach(l=> l.center += (minY-labelInfo[0].center));
+  labelInfo.forEach(l=>{
+    const displaced = Math.abs(l.center - l.ly) > 3;
+    const lx2 = l.lx + (displaced ? 12 : 9);
+    if(displaced) trendSvg.appendChild(el('line',{x1:l.lx+3, y1:l.ly, x2:lx2-3, y2:l.center, stroke:l.color, 'stroke-width':1, opacity:0.45}));
+    const lbl = el('text',{class:'end-label', x:lx2, y:l.center-4}); lbl.textContent = l.brand; trendSvg.appendChild(lbl);
+    const sub = el('text',{class:'end-sub', x:lx2, y:l.center+9}); sub.textContent = fmt(l.val,0) + (l.isEv?' MPGe':' MPG'); trendSvg.appendChild(sub);
+  });
+
+  // hover layer
+  const hitRect = el('rect',{x:M1.left,y:M1.top,width:plotW1,height:plotH1, fill:'transparent'});
+  hitRect.addEventListener('pointermove', evt=>{
+    const p = svgPoint(trendSvg, evt);
+    const year = Math.round(xMin + (p.x-M1.left)/plotW1 * (xMax-xMin));
+    crosshair.setAttribute('x1', xScale(year)); crosshair.setAttribute('x2', xScale(year)); crosshair.style.opacity=1;
+    let rows='';
+    series.forEach((s,i)=>{
+      const pt = s.pts.find(pp=>pp.year===year);
+      const color = slotColor(i);
+      if(pt) rows += `<div class="t-row"><span class="t-key" style="background:${color}"></span><span class="t-name">${s.brand}</span><span class="t-val">${fmt(pt.avg_mpg,1)}${pt.ev_pct===100?' MPGe':''}</span></div>`;
+    });
+    const rectBox = trendSvg.getBoundingClientRect();
+    showTip(evt.clientX - rectBox.left, evt.clientY - rectBox.top, `<div class="t-year">MODEL YEAR ${year}</div>${rows}`);
+  });
+  hitRect.addEventListener('pointerleave', ()=>{ crosshair.style.opacity=0; hideTip(); });
+  trendSvg.appendChild(hitRect);
+}
+renderChips(); drawTrend();
+
+/* ================= CHART 2: EV adoption area + forecast ================= */
+const M2 = {top:14,right:70,bottom:26,left:38}, W2=920, H2=300;
+const plotW2=W2-M2.left-M2.right, plotH2=H2-M2.top-M2.bottom;
+(function(){
+  const svg = document.getElementById('evChart');
+  const pts = DATA.industry_trend;
+  const forecast = DATA.ev_forecast || [];
+  const xMin=pts[0].year, xMaxHist=pts[pts.length-1].year;
+  const xMax = forecast.length ? forecast[forecast.length-1].year : xMaxHist;
+  const yDataMax = Math.max(...pts.map(p=>p.ev_pct), ...forecast.map(f=>f.high));
+  const yMax = Math.ceil(yDataMax/5)*5 + 5;
+  const xScale = y => M2.left + (y-xMin)/(xMax-xMin)*plotW2;
+  const yScale = v => M2.top + plotH2 - v/yMax*plotH2;
+  const g = el('g',{});
+  for(let i=0;i<=4;i++){
+    const v = yMax*i/4, y = yScale(v);
+    g.appendChild(el('line',{class:'gridline', x1:M2.left,x2:W2-M2.right,y1:y,y2:y}));
+    const t = el('text',{class:'axis-text', x:M2.left-8, y:y+3, 'text-anchor':'end'}); t.textContent=Math.round(v)+'%'; g.appendChild(t);
+  }
+  for(let yr=Math.ceil(xMin/5)*5; yr<=xMax; yr+=5){
+    const t = el('text',{class:'axis-text', x:xScale(yr), y:H2-M2.bottom+18, 'text-anchor':'middle'}); t.textContent=yr; g.appendChild(t);
+  }
+  svg.appendChild(g);
+  const areaD = 'M'+xScale(xMin)+' '+yScale(0)+' ' + pts.map(p=>'L'+xScale(p.year)+' '+yScale(p.ev_pct)).join(' ') + ' L'+xScale(xMaxHist)+' '+yScale(0)+' Z';
+  const c = cssv('--blue');
+  svg.appendChild(el('path',{d:areaD, fill:c, opacity:0.10}));
+  const lineD = pts.map((p,j)=>(j===0?'M':'L')+xScale(p.year)+' '+yScale(p.ev_pct)).join(' ');
+  svg.appendChild(el('path',{d:lineD, fill:'none', stroke:c, 'stroke-width':2, 'stroke-linecap':'round','stroke-linejoin':'round'}));
+
+  if(forecast.length){
+    const last = pts[pts.length-1];
+    const bandPts = [{year:last.year, low:last.ev_pct, high:last.ev_pct}, ...forecast];
+    const bandD = 'M'+xScale(bandPts[0].year)+' '+yScale(bandPts[0].low)+' '
+      + bandPts.map(f=>'L'+xScale(f.year)+' '+yScale(f.low)).join(' ')
+      + bandPts.slice().reverse().map(f=>'L'+xScale(f.year)+' '+yScale(f.high)).join(' ') + ' Z';
+    svg.appendChild(el('path',{d:bandD, fill:c, opacity:0.12}));
+    const fLineD = [{year:last.year, point:last.ev_pct}, ...forecast].map((f,j)=>(j===0?'M':'L')+xScale(f.year)+' '+yScale(f.point)).join(' ');
+    svg.appendChild(el('path',{d:fLineD, fill:'none', stroke:c, 'stroke-width':2, opacity:0.55, 'stroke-linecap':'round','stroke-linejoin':'round'}));
+    const fLast = forecast[forecast.length-1];
+    svg.appendChild(el('circle',{cx:xScale(fLast.year), cy:yScale(fLast.point), r:4, fill:c, opacity:0.55, stroke:cssv('--surface'),'stroke-width':2}));
+    const flbl = el('text',{class:'end-label', x:xScale(fLast.year)+9, y:yScale(fLast.point)-4}); flbl.textContent=fmt(fLast.point,0)+'% by '+fLast.year+' (forecast)'; svg.appendChild(flbl);
+    const hlbl = el('text',{class:'end-sub', x:xScale(fLast.year)+9, y:yScale(fLast.point)+11}); hlbl.textContent='['+fmt(fLast.low,0)+'–'+fmt(fLast.high,0)+'%]'; svg.appendChild(hlbl);
+  } else {
+    const last = pts[pts.length-1];
+    svg.appendChild(el('circle',{cx:xScale(last.year), cy:yScale(last.ev_pct), r:4, fill:c, stroke:cssv('--surface'),'stroke-width':2}));
+    const lbl = el('text',{class:'end-label', x:xScale(last.year)+9, y:yScale(last.ev_pct)-4}); lbl.textContent=fmt(last.ev_pct,1)+'% in '+last.year; svg.appendChild(lbl);
+  }
+
+  const crosshair = el('line',{class:'crosshair', x1:0,x2:0,y1:M2.top,y2:H2-M2.bottom}); svg.appendChild(crosshair);
+  const hitRect = el('rect',{x:M2.left,y:M2.top,width:plotW2,height:plotH2, fill:'transparent'});
+  hitRect.addEventListener('pointermove', evt=>{
+    const p = svgPoint(svg, evt);
+    const year = Math.round(xMin + (p.x-M2.left)/plotW2*(xMax-xMin));
+    const pt = pts.find(pp=>pp.year===year);
+    const fc = forecast.find(pp=>pp.year===year);
+    if(!pt && !fc) return;
+    crosshair.setAttribute('x1', xScale(year)); crosshair.setAttribute('x2', xScale(year)); crosshair.style.opacity=1;
+    const rectBox = svg.getBoundingClientRect();
+    const body = pt
+      ? `<div class="t-row"><span class="t-key" style="background:${c}"></span><span class="t-name">EV share</span><span class="t-val">${fmt(pt.ev_pct,2)}%</span></div><div class="t-row"><span class="t-key" style="background:transparent"></span><span class="t-name">Vehicles tested</span><span class="t-val">${commas(pt.count)}</span></div>`
+      : `<div class="t-row"><span class="t-key" style="background:${c}"></span><span class="t-name">Forecast (logistic fit)</span><span class="t-val">${fmt(fc.point,1)}%</span></div><div class="t-row"><span class="t-name" style="opacity:.65">10th&ndash;90th pct.</span><span class="t-val" style="font-weight:400">${fmt(fc.low,1)}&ndash;${fmt(fc.high,1)}%</span></div>`;
+    showTip(evt.clientX-rectBox.left, evt.clientY-rectBox.top, `<div class="t-year">MODEL YEAR ${year}${fc?' (PROJECTED)':''}</div>${body}`);
+  });
+  hitRect.addEventListener('pointerleave', ()=>{ crosshair.style.opacity=0; hideTip(); });
+  svg.appendChild(hitRect);
+})();
+
+/* ================= CHART 3: Efficiency frontier scatter ================= */
+const M3 = {top:14,right:20,bottom:34,left:38}, W3=920, H3=380;
+const plotW3=W3-M3.left-M3.right, plotH3=H3-M3.top-M3.bottom;
+(function(){
+  const svg = document.getElementById('scatterChart');
+  const data = DATA.scatter;
+  const counts = {};
+  data.forEach(p=>{ counts[p.vclass]=(counts[p.vclass]||0)+1; });
+  const top3 = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);
+  const colorFor = v => { const i=top3.indexOf(v); return i>=0 ? slotColor(i) : cssv('--other'); };
+  const labelFor = v => top3.includes(v) ? v : 'Other classes';
+
+  const xMax = Math.ceil(Math.max(...data.map(p=>p.displ))*10)/10 + 0.3;
+  const yMin = Math.floor(Math.min(...data.map(p=>p.mpg))/10)*10 - 5;
+  const yMax = Math.ceil(Math.max(...data.map(p=>p.mpg))/10)*10 + 2;
+  const xScale = v => M3.left + v/xMax*plotW3;
+  const yScale = v => M3.top + plotH3 - (v-yMin)/(yMax-yMin)*plotH3;
+
+  const g = el('g',{});
+  for(let i=0;i<=5;i++){
+    const v = yMin + (yMax-yMin)*i/5, y=yScale(v);
+    g.appendChild(el('line',{class:'gridline', x1:M3.left,x2:W3-M3.right,y1:y,y2:y}));
+    const t = el('text',{class:'axis-text', x:M3.left-8, y:y+3, 'text-anchor':'end'}); t.textContent=Math.round(v); g.appendChild(t);
+  }
+  for(let v=1; v<=xMax; v+=1){
+    const x = xScale(v);
+    g.appendChild(el('text',{class:'axis-text', x:x, y:H3-M3.bottom+18, 'text-anchor':'middle'})).textContent = v.toFixed(0)+'L';
+  }
+  svg.appendChild(g);
+  svg.appendChild(el('text',{class:'axis-text', x:M3.left, y:M3.top-2}));
+
+  data.forEach(p=>{
+    const cx=xScale(p.displ), cy=yScale(p.mpg), color=colorFor(p.vclass);
+    const hit = el('circle',{cx,cy,r:12,fill:'transparent'});
+    const dot = el('circle',{cx,cy,r:3,fill:color,opacity:0.85});
+    hit.addEventListener('pointerenter', evt=>{
+      dot.setAttribute('r',5); dot.setAttribute('stroke',cssv('--surface')); dot.setAttribute('stroke-width',2);
+      const rectBox = svg.getBoundingClientRect();
+      showTip(evt.clientX-rectBox.left, evt.clientY-rectBox.top,
+        `<div class="t-year">${p.make.toUpperCase()}</div><div class="t-row"><span class="t-key" style="background:${color}"></span><span class="t-name">${labelFor(p.vclass)}</span></div><div class="t-row"><span class="t-name">Displacement</span><span class="t-val">${fmt(p.displ,1)} L / ${p.cylinders|0}cyl</span></div><div class="t-row"><span class="t-name">Combined</span><span class="t-val">${fmt(p.mpg,0)} MPG</span></div>`);
+    });
+    hit.addEventListener('pointerleave', ()=>{ dot.removeAttribute('stroke'); dot.setAttribute('r',3); hideTip(); });
+    svg.appendChild(dot); svg.appendChild(hit);
+  });
+
+  const legend = document.getElementById('scatterLegend');
+  [...top3, '__other__'].forEach((v,i)=>{
+    const s = document.createElement('span');
+    const color = v==='__other__' ? cssv('--other') : slotColor(i);
+    s.innerHTML = `<i style="background:${color}"></i>${v==='__other__'?'Other classes':v}`;
+    legend.appendChild(s);
+  });
+})();
+
+/* ================= Leaderboard table ================= */
+(function(){
+  const body = document.getElementById('boardBody');
+  const maxMpg = Math.max(...DATA.leaderboard.map(r=>r.avg_mpg));
+  DATA.leaderboard.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="rank">${i+1}</td><td>${r.make}</td><td class="num">${r.model_count}</td>
+      <td class="num">${r.ev_pct>0?`<span class="ev-pill">${fmt(r.ev_pct,0)}% EV</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td class="num"><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${(r.avg_mpg/maxMpg*100).toFixed(0)}%"></div></div><span>${fmt(r.avg_mpg,1)}</span></div></td>`;
+    body.appendChild(tr);
+  });
+})();
+
+/* ================= 05: Model bake-off table (5-fold CV, mean +/- std) ================= */
+(function(){
+  const body = document.getElementById('bakeoffBody');
+  const maxR2 = Math.max(...DATA.bakeoff.map(m=>m.r2_mean));
+  DATA.bakeoff.slice().sort((a,b)=>b.r2_mean-a.r2_mean).forEach(m=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${m.name}</td>
+      <td>${m.portable?'<span class="ev-pill" style="background:color-mix(in srgb, var(--s1) 16%, transparent); color:var(--s1)">LIVE BELOW</span>':''}</td>
+      <td class="num"><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${(m.r2_mean/maxR2*100).toFixed(0)}%"></div></div><span>${m.r2_mean.toFixed(3)} &plusmn; ${m.r2_std.toFixed(3)}</span></div></td>
+      <td class="num">${m.mae_mean.toFixed(2)} &plusmn; ${m.mae_std.toFixed(2)} MPG</td>`;
+    body.appendChild(tr);
+  });
+
+  const tuning = DATA.tuning;
+  if(tuning){
+    const wrap = document.getElementById('tuningRows');
+    const rows = [
+      ['Random Forest', tuning.random_forest],
+      ['Gradient Boosting', tuning.gradient_boosting]
+    ];
+    let html = '<div class="shap-title" style="margin-top:6px">RandomizedSearchCV tuning (15 iters, 3-fold, vs. the untuned CV score above)</div>';
+    rows.forEach(([name, t])=>{
+      const delta = t.tuned_r2 - t.untuned_r2;
+      const paramStr = Object.entries(t.best_params).map(([k,v])=>`${k}=${v}`).join(', ');
+      html += `<div class="imp-row" style="grid-template-columns:150px 1fr auto;">
+        <div class="imp-label">${name}</div>
+        <div class="mono" style="font-size:11px; color:var(--ink-2);">${paramStr}</div>
+        <div class="imp-val" style="color:${delta>=0?'var(--blue)':'var(--s8)'}">${t.untuned_r2.toFixed(3)} &rarr; ${t.tuned_r2.toFixed(3)} (${delta>=0?'+':''}${delta.toFixed(3)})</div>
+      </div>`;
+    });
+    wrap.innerHTML = html;
+  }
+})();
+
+/* ================= 06: Feature importance (SHAP, falls back to impurity-based) ================= */
+(function(){
+  const wrap = document.getElementById('importanceRows');
+  const importanceData = DATA.shap_importance || DATA.feature_importance;
+  const max = Math.max(...importanceData.map(f=>f.pct));
+  importanceData.forEach(f=>{
+    const row = document.createElement('div'); row.className='imp-row';
+    row.innerHTML = `<div class="imp-label">${f.label}</div>
+      <div class="imp-track"><div class="imp-fill" style="width:${(f.pct/max*100).toFixed(0)}%"></div></div>
+      <div class="imp-val">${f.pct.toFixed(1)}%</div>`;
+    wrap.appendChild(row);
+  });
+
+  if(DATA.shap_importance && DATA.feature_importance){
+    const shapTop = DATA.shap_importance[0];
+    const oldMatch = DATA.feature_importance.find(f=>f.label===shapTop.label);
+    if(oldMatch && Math.abs(oldMatch.pct - shapTop.pct) > 10){
+      document.getElementById('importanceCompareNote').innerHTML =
+        `Worth flagging: the Random Forest's built-in (impurity-based) importance put ${shapTop.label.toLowerCase()} at <b style="color:var(--ink)">${oldMatch.pct}%</b> &mdash; SHAP puts it at <b style="color:var(--ink)">${shapTop.pct}%</b>. That's not noise, it's a known bias: impurity-based importance systematically over-credits continuous/high-cardinality features like displacement over categorical ones. SHAP's game-theoretic attribution (Shapley values from cooperative game theory) doesn't share that bias, which is the actual reason to prefer it here, not just that it sounds more rigorous.`;
+    }
+  }
+})();
+
+/* ================= 07: K-means segmentation scatter ================= */
+const M4 = {top:14,right:20,bottom:34,left:38}, W4=920, H4=380;
+const plotW4=W4-M4.left-M4.right, plotH4=H4-M4.top-M4.bottom;
+(function(){
+  const svg = document.getElementById('clusterChart');
+  const data = DATA.clusters.points;
+  const summary = DATA.clusters.summary;
+  const counts = {};
+  data.forEach(p=>{ counts[p.cluster]=(counts[p.cluster]||0)+1; });
+  const top3 = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>+e[0]);
+  const labelOf = id => (summary.find(s=>s.id===id)||{}).label || ('Segment '+id);
+  const colorFor = id => { const i=top3.indexOf(id); return i>=0 ? slotColor(i) : cssv('--other'); };
+
+  const xMax = Math.ceil(Math.max(...data.map(p=>p.displ))*10)/10 + 0.3;
+  const yMin = Math.floor(Math.min(...data.map(p=>p.mpg))/10)*10 - 5;
+  const yMax = Math.ceil(Math.max(...data.map(p=>p.mpg))/10)*10 + 4;
+  const xScale = v => M4.left + v/xMax*plotW4;
+  const yScale = v => M4.top + plotH4 - (v-yMin)/(yMax-yMin)*plotH4;
+
+  const g = el('g',{});
+  for(let i=0;i<=5;i++){
+    const v = yMin + (yMax-yMin)*i/5, y=yScale(v);
+    g.appendChild(el('line',{class:'gridline', x1:M4.left,x2:W4-M4.right,y1:y,y2:y}));
+    const t = el('text',{class:'axis-text', x:M4.left-8, y:y+3, 'text-anchor':'end'}); t.textContent=Math.round(v); g.appendChild(t);
+  }
+  for(let v=1; v<=xMax; v+=1){
+    g.appendChild(el('text',{class:'axis-text', x:xScale(v), y:H4-M4.bottom+18, 'text-anchor':'middle'})).textContent = v.toFixed(0)+'L';
+  }
+  svg.appendChild(g);
+
+  data.forEach(p=>{
+    const cx=xScale(p.displ), cy=yScale(p.mpg), color=colorFor(p.cluster);
+    const hit = el('circle',{cx,cy,r:12,fill:'transparent'});
+    const dot = el('circle',{cx,cy,r:3,fill:color,opacity:0.85});
+    hit.addEventListener('pointerenter', evt=>{
+      dot.setAttribute('r',5); dot.setAttribute('stroke',cssv('--surface')); dot.setAttribute('stroke-width',2);
+      const rectBox = svg.getBoundingClientRect();
+      showTip(evt.clientX-rectBox.left, evt.clientY-rectBox.top,
+        `<div class="t-year">${p.make.toUpperCase()}</div><div class="t-row"><span class="t-key" style="background:${color}"></span><span class="t-name">${labelOf(p.cluster)}</span></div><div class="t-row"><span class="t-name">Displacement</span><span class="t-val">${fmt(p.displ,1)} L</span></div><div class="t-row"><span class="t-name">Combined</span><span class="t-val">${fmt(p.mpg,0)} MPG</span></div>`);
+    });
+    hit.addEventListener('pointerleave', ()=>{ dot.removeAttribute('stroke'); dot.setAttribute('r',3); hideTip(); });
+    svg.appendChild(dot); svg.appendChild(hit);
+  });
+
+  const legend = document.getElementById('clusterLegend');
+  const otherLabels = summary.filter(s=>!top3.includes(s.id)).map(s=>s.label);
+  top3.forEach((id,i)=>{
+    const s = document.createElement('span');
+    s.innerHTML = `<i style="background:${slotColor(i)}"></i>${labelOf(id)}`;
+    legend.appendChild(s);
+  });
+  if(otherLabels.length){
+    const s = document.createElement('span');
+    s.innerHTML = `<i style="background:${cssv('--other')}"></i>${otherLabels.join(' / ')}`;
+    legend.appendChild(s);
+  }
+
+  const tbody = document.getElementById('clusterBody');
+  summary.slice().sort((a,b)=>b.avg_mpg-a.avg_mpg).forEach(s=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s.label}</td><td class="num">${commas(s.n)}</td><td class="num">${s.avg_displ>0?s.avg_displ.toFixed(1)+' L':'&mdash; (electric)'}</td><td class="num">${s.avg_mpg.toFixed(1)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const sil = DATA.silhouette;
+  if(sil){
+    document.getElementById('segDesc').innerHTML =
+      `K-means (our own implementation &mdash; this host blocks scikit-learn's compiled clustering module) run on standardized combined MPG, displacement, cylinder count and tailpipe CO&sub2;, 1,200 vehicles from the last 5 model years. The algorithm was never told make, price, or class &mdash; these groupings emerged from the specs alone, shown here at <b style="color:var(--ink)">k=5</b>.`;
+    const wrap = document.getElementById('silhouetteRows');
+    const maxSil = Math.max(...sil.by_k.map(d=>d.silhouette));
+    let html = '<div class="shap-title">Silhouette score by k (higher = more separated clusters)</div>';
+    sil.by_k.forEach(d=>{
+      const isUsed = d.k === 5;
+      const isBest = d.k === sil.best_k;
+      html += `<div class="imp-row">
+        <div class="imp-label">k=${d.k}${isUsed?' (shown above)':''}${isBest?' (statistical best)':''}</div>
+        <div class="imp-track"><div class="imp-fill" style="width:${(d.silhouette/maxSil*100).toFixed(0)}%; background:${isBest?'var(--accent)':'var(--blue)'}"></div></div>
+        <div class="imp-val">${d.silhouette.toFixed(3)}</div>
+      </div>`;
+    });
+    wrap.innerHTML = html;
+    document.getElementById('silhouetteNote').innerHTML =
+      `Honest methodology note: silhouette score says <b style="color:var(--ink)">k=${sil.best_k}</b> is the statistically cleanest split (score ${sil.by_k.find(d=>d.k===sil.best_k).silhouette.toFixed(2)}) &mdash; we checked, and it's just electric vs. everything else (0L/92 MPG vs. 3.0L/23 MPG, verified directly). That's true but not very useful. We kept <b style="color:var(--ink)">k=5</b> (score ${sil.by_k.find(d=>d.k===5).silhouette.toFixed(2)}) because five genuinely distinct, actionable market segments beat one trivially-correct binary split &mdash; interpretability over the silhouette-optimal answer, and we're telling you that trade-off rather than only showing the flattering number.`;
+  }
+})();
+
+/* ================= 08: Powertrain classifier confusion matrix ================= */
+(function(){
+  const c = DATA.classifier;
+  document.getElementById('clfNTest').textContent = commas(c.n_test);
+  document.getElementById('clfAcc').textContent = (c.accuracy*100).toFixed(1)+'%';
+  const wrap = document.getElementById('cmWrap');
+  const n = c.classes.length;
+  const rowTotals = c.confusion_matrix.map(row=>row.reduce((a,b)=>a+b,0));
+
+  const corner = document.createElement('div'); corner.className='cm-axis-label';
+  corner.textContent = 'ACTUAL';
+
+  const colHeadWrap = document.createElement('div');
+  const predLabel = document.createElement('div'); predLabel.className='cm-top-label'; predLabel.style.gridColumn='unset'; predLabel.style.marginBottom='4px';
+  predLabel.textContent = 'PREDICTED →';
+  const colHeads = document.createElement('div'); colHeads.className='cm-col-labels';
+  colHeads.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  c.classes.forEach(cl=>{ const s=document.createElement('span'); s.textContent=cl; colHeads.appendChild(s); });
+  colHeadWrap.appendChild(predLabel); colHeadWrap.appendChild(colHeads);
+
+  const grid = document.createElement('div'); grid.className='cm-grid';
+  grid.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  const blue = cssv('--blue');
+  c.confusion_matrix.forEach((row,i)=>{
+    row.forEach((val,j)=>{
+      const pct = rowTotals[i] ? val/rowTotals[i] : 0;
+      const cell = document.createElement('div'); cell.className='cm-cell';
+      cell.style.background = `color-mix(in srgb, ${blue} ${Math.round(pct*85+ (val>0?8:0))}%, var(--surface-2))`;
+      cell.style.color = pct > 0.45 ? (cssv('--page')) : 'var(--ink)';
+      cell.textContent = commas(val);
+      cell.title = `${c.classes[i]} predicted as ${c.classes[j]}: ${val} (${(pct*100).toFixed(1)}% of actual ${c.classes[i]})`;
+      grid.appendChild(cell);
+    });
+  });
+
+  const rowLabelsCol = document.createElement('div'); rowLabelsCol.style.display='grid'; rowLabelsCol.style.gap='3px';
+  rowLabelsCol.style.gridTemplateRows = `repeat(${n},1fr)`;
+  c.classes.forEach(cl=>{ const s=document.createElement('div'); s.className='cm-row-label'; s.textContent=cl; rowLabelsCol.appendChild(s); });
+
+  wrap.appendChild(corner);
+  wrap.appendChild(colHeadWrap);
+  wrap.appendChild(rowLabelsCol);
+  wrap.appendChild(grid);
+})();
+
+/* ================= 09: Safety vs efficiency scatter ================= */
+const M5 = {top:20,right:24,bottom:34,left:38}, W5=920, H5=380;
+const plotW5=W5-M5.left-M5.right, plotH5=H5-M5.top-M5.bottom;
+(function(){
+  const svg = document.getElementById('safetyChart');
+  if(!SAFETY_DATA){ svg.parentElement.style.display='none'; return; }
+  const brandMpg = {};
+  DATA.leaderboard.forEach(r=>{ brandMpg[r.make] = r.avg_mpg; });
+  const points = Object.entries(SAFETY_DATA.brands)
+    .filter(([make, b]) => b.avg_safety_rating!=null && brandMpg[make]!=null && brandMpg[make] < 70)
+    .map(([make, b]) => ({make, mpg: brandMpg[make], rating: b.avg_safety_rating, models: b.models_sampled, n: b.safety_samples_n}))
+    .sort((a,b)=>a.mpg-b.mpg);
+
+  const xMax = Math.ceil(Math.max(...points.map(p=>p.mpg))/5)*5 + 3;
+  const xMin = Math.floor(Math.min(...points.map(p=>p.mpg))/5)*5 - 3;
+  const yMin = 3.5, yMax = 5.3;
+  const xScale = v => M5.left + (v-xMin)/(xMax-xMin)*plotW5;
+  const yScale = v => M5.top + plotH5 - (v-yMin)/(yMax-yMin)*plotH5;
+
+  const g = el('g',{});
+  [4,4.5,5].forEach(v=>{
+    const y = yScale(v);
+    g.appendChild(el('line',{class:'gridline', x1:M5.left,x2:W5-M5.right,y1:y,y2:y}));
+    g.appendChild(el('text',{class:'axis-text', x:M5.left-8, y:y+3, 'text-anchor':'end'})).textContent = v.toFixed(1)+'★';
+  });
+  for(let v=Math.ceil(xMin/10)*10; v<=xMax; v+=10){
+    g.appendChild(el('text',{class:'axis-text', x:xScale(v), y:H5-M5.bottom+18, 'text-anchor':'middle'})).textContent = v+' MPG';
+  }
+  svg.appendChild(g);
+
+  const blue = cssv('--blue');
+  points.forEach((p,i)=>{
+    const cx=xScale(p.mpg), cy=yScale(p.rating);
+    const hit = el('circle',{cx,cy,r:14,fill:'transparent'});
+    const dot = el('circle',{cx,cy,r:4,fill:blue,stroke:cssv('--surface'),'stroke-width':2});
+    const labelUp = i % 2 === 0;
+    const ly = labelUp ? cy-12 : cy+18;
+    const lbl = el('text',{class:'end-label', x:cx, y:ly, 'text-anchor':'middle'}); lbl.textContent = p.make;
+    hit.addEventListener('pointerenter', evt=>{
+      dot.setAttribute('r',6);
+      const rectBox = svg.getBoundingClientRect();
+      showTip(evt.clientX-rectBox.left, evt.clientY-rectBox.top,
+        `<div class="t-year">${p.make.toUpperCase()}</div><div class="t-row"><span class="t-name">NHTSA overall rating</span><span class="t-val">${p.rating.toFixed(1)} / 5</span></div><div class="t-row"><span class="t-name">Avg. combined</span><span class="t-val">${fmt(p.mpg,1)} MPG</span></div><div class="t-row"><span class="t-name" style="opacity:.65">Sampled</span><span class="t-val" style="font-weight:400">${p.models.join(', ')}</span></div>`);
+    });
+    hit.addEventListener('pointerleave', ()=>{ dot.setAttribute('r',4); hideTip(); });
+    svg.appendChild(dot); svg.appendChild(lbl); svg.appendChild(hit);
+  });
+
+  const nBrandsTotal = Object.keys(SAFETY_DATA.brands).length;
+  const nHit = Object.values(SAFETY_DATA.brands).filter(b=>b.safety_samples_n>0).length;
+  document.getElementById('safetyMethodNote').innerHTML =
+    `Methodology: safety ratings matched for ${nHit} of ${nBrandsTotal} major brands (NHTSA doesn't star-rate every trim, and EPA's most-tested trims for some performance-focused brands are niche variants NHTSA never rated — e.g. BMW's EPA sample happened to be the M2/Z4/M850i, not the mainstream 3 Series/X5). Read this as a spot-check, not a full census: nearly every matched brand clears 5 stars, which is itself the finding — modern crash safety and fuel efficiency aren't in tension the way 1980s economy cars suggested.`;
+})();
+
+/* ================= 10: Recall frequency table ================= */
+(function(){
+  const body = document.getElementById('recallBody');
+  if(!SAFETY_DATA){ return; }
+  const rows = Object.entries(SAFETY_DATA.brands)
+    .map(([make,b])=>({make, ...b}))
+    .sort((a,b)=>b.total_recalls_sampled - a.total_recalls_sampled);
+  const maxRecalls = Math.max(...rows.map(r=>r.total_recalls_sampled), 1);
+  rows.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.title = `Sampled: ${r.models_sampled.join(', ')} (model years ${r.years_sampled.join('–')})`;
+    tr.innerHTML = `<td class="rank">${i+1}</td><td>${r.make}</td><td class="num">${r.models_sampled.length}</td>
+      <td class="num">${r.years_sampled.join('–')}</td>
+      <td class="num"><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${(r.total_recalls_sampled/maxRecalls*100).toFixed(0)}%; background:var(--accent)"></div></div><span>${r.total_recalls_sampled}</span></div></td>`;
+    body.appendChild(tr);
+  });
+})();
+
+/* ================= 11: ML Predictor (dual model, live in-browser) ================= */
+(function(){
+  const model = DATA.model;
+  const ridge = model.ridge_full;
+  const tree = model.tree_json;
+  const meta = DATA.meta;
+  const selVclass = document.getElementById('f_vclass');
+  const selDrive = document.getElementById('f_drive');
+  const selTrany = document.getElementById('f_trany');
+  const selFuel = document.getElementById('f_fuel');
+  meta.vclasses.forEach(v=> selVclass.appendChild(new Option(v, v)));
+  meta.drives.filter(d=>d!=='Unknown').forEach(v=> selDrive.appendChild(new Option(v, v)));
+  meta.tranies.filter(t=>t!=='Unknown').forEach(v=> selTrany.appendChild(new Option(v, v)));
+  meta.fueltypes.forEach(v=> selFuel.appendChild(new Option(v, v)));
+  selVclass.value = 'Midsize Car'; selDrive.value='FWD'; selTrany.value='Automatic'; selFuel.value='Regular Gasoline';
+
+  const fDispl=document.getElementById('f_displ'), fCyl=document.getElementById('f_cyl'), fYear=document.getElementById('f_year');
+  const vDispl=document.getElementById('v_displ'), vCyl=document.getElementById('v_cyl'), vYear=document.getElementById('v_year');
+
+  function buildFeatVec(spec){
+    const vec = {};
+    model.features_num.forEach(f=> vec[f]=spec[f]);
+    model.features_cat.forEach(f=>{
+      model.categories[f].forEach(cat=>{ vec[f+'_'+cat] = (spec[f]===cat ? 1 : 0); });
+    });
+    return vec;
+  }
+  function predictRidge(vec){
+    let y = ridge.intercept;
+    for(const k in vec) y += (ridge.coefs[k]||0) * vec[k];
+    return y;
+  }
+  function predictTree(node, vec){
+    while(!('leaf' in node)){ node = (vec[node.f] <= node.th) ? node.l : node.r; }
+    return node.leaf;
+  }
+  const FEAT_LABEL = {displ:'Engine displacement', cylinders:'Cylinder count', year:'Model year'};
+  const CAT_GROUP_LABEL = {drive_s:'Drivetrain', vclass_s:'Vehicle class', trany_s:'Transmission', fuelType1:'Fuel grade'};
+  function renderShapBreakdown(vec, spec){
+    const wrap = document.getElementById('shapRows');
+    if(!ridge.feature_baseline){ wrap.innerHTML = ''; return; }
+    // Group one-hot dummy contributions back to their parent categorical feature (same
+    // grouping as the global SHAP importance in section 06) — showing each dummy column
+    // individually would surface "Fuel: Premium Gasoline" contributions even when Regular
+    // Gasoline is selected, since linear SHAP's baseline term is nonzero for every category,
+    // not just the one that's actually chosen. Summing the group preserves exact additivity
+    // (all rows here + numeric rows + baseline == the displayed ridge prediction).
+    const contributions = [];
+    model.features_num.forEach(k=>{
+      const value = (ridge.coefs[k]||0) * (vec[k] - (ridge.feature_baseline[k]||0));
+      contributions.push({ label: FEAT_LABEL[k], value });
+    });
+    model.features_cat.forEach(f=>{
+      const groupSum = model.categories[f].reduce((sum, cat)=>{
+        const k = f+'_'+cat;
+        return sum + (ridge.coefs[k]||0) * (vec[k] - (ridge.feature_baseline[k]||0));
+      }, 0);
+      contributions.push({ label: `${CAT_GROUP_LABEL[f]}: ${spec[f]}`, value: groupSum });
+    });
+    contributions.sort((a,b) => Math.abs(b.value) - Math.abs(a.value));
+    const maxAbs = Math.max(...contributions.map(c=>Math.abs(c.value)), 0.1);
+    wrap.innerHTML = contributions.map(c=>{
+      const pos = c.value >= 0;
+      const widthPct = Math.min(100, Math.abs(c.value)/maxAbs*100).toFixed(0);
+      return `<div class="shap-row">
+        <div class="shap-label">${c.label}</div>
+        <div class="shap-track"><div class="shap-bar ${pos?'pos':'neg'}" style="width:${widthPct/2}%"></div></div>
+        <div class="shap-val ${pos?'pos':'neg'}">${pos?'+':''}${c.value.toFixed(1)}</div>
+      </div>`;
+    }).join('');
+  }
+  function render(){
+    vDispl.textContent = (+fDispl.value).toFixed(1)+' L';
+    vCyl.textContent = fCyl.value;
+    vYear.textContent = fYear.value;
+    const spec = { displ:+fDispl.value, cylinders:+fCyl.value, year:+fYear.value,
+      drive_s:selDrive.value, vclass_s:selVclass.value, trany_s:selTrany.value, fuelType1:selFuel.value };
+    const vec = buildFeatVec(spec);
+    const yR = Math.max(8, predictRidge(vec));
+    const yT = Math.max(8, predictTree(tree, vec));
+    document.getElementById('predValRidge').textContent = yR.toFixed(1);
+    document.getElementById('predValTree').textContent = yT.toFixed(1);
+    const diff = yT - yR;
+    document.getElementById('deltaNote').textContent =
+      `Tree ${diff>=0?'+':''}${diff.toFixed(1)} MPG vs. ridge — the tree can capture step-changes (e.g. class or drivetrain cutoffs) a straight line smooths over.`;
+    document.getElementById('specEcho').innerHTML =
+      `${selVclass.value} &middot; ${selDrive.value} &middot; ${selTrany.value}<br>${fDispl.value}L / ${fCyl.value}-cyl &middot; ${selFuel.value} &middot; MY${fYear.value}`;
+    renderShapBreakdown(vec, spec);
+  }
+  [fDispl,fCyl,fYear,selVclass,selDrive,selTrany,selFuel].forEach(elm=> elm.addEventListener('input', render));
+  const ridgeBake = DATA.bakeoff.find(m=>m.name==='Ridge Regression');
+  document.getElementById('statR2').textContent = (ridgeBake.r2_mean!=null ? ridgeBake.r2_mean : ridgeBake.r2).toFixed(2);
+  document.getElementById('statMae').textContent = '±'+(ridgeBake.mae_mean!=null ? ridgeBake.mae_mean : ridgeBake.mae).toFixed(1);
+  document.getElementById('statN').textContent = commas(model.n_samples);
+  render();
+})();
+
+/* redraw trend chart colors if theme flips (media query) */
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ renderChips(); drawTrend(); });
+</script>
